@@ -1,0 +1,10 @@
+url,target,anchor,notes
+https://en.wikipedia.org/wiki/Search_engine_optimization,,,tier B authority test
+https://www.glassdoor.com/index.htm,,,tier B employer reviews
+https://httpstat.us/404,,,deliberate 404 test
+https://httpstat.us/301,,,deliberate 301 redirect test
+https://httpstat.us/500,,,deliberate 500 test
+https://www.python.org/,,,tier B dev platform
+https://ox.ac.uk/,,,tier A institutional
+https://this-domain-really-does-not-exist-9x8z.com/,,,DNS failure test
+https://www.iana.org/help/example-domains,,,tier C org test

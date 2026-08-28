@@ -1,0 +1,41 @@
+# ---- secrets: never commit ----
+.env
+*.key
+*.pem
+
+# ---- generated output ----
+output/*
+!output/.gitkeep
+history/
+*.log
+
+# ---- caches (all regenerable) ----
+cache/*
+!cache/.gitkeep
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# ---- the database is a binary blob ----
+# Git cannot diff it and it bloats history. The source sheet in data/ is
+# committed instead, so anyone can rebuild it in one command:
+#     python -m seo_audit --import-master data/master_disavow_sheet.csv
+data/*.db
+data/*.db-wal
+data/*.db-shm
+
+# ---- your own input lists ----
+# Uncomment if backlink lists should stay out of the repo.
+# input/*.csv
+# input/*.xlsx
+input/metrics/*
+!input/metrics/README.txt
+
+# ---- OS / editor noise ----
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+*.swp
+~$*

@@ -1,0 +1,245 @@
+# ============================================================
+#  Curated high-authority domains  ->  Trust tier B
+#  Add your own niche-relevant authority sites here; the audit
+#  picks up changes on the next run, no code edits needed.
+#  Match is on the REGISTERED domain, so "wikipedia.org" also
+#  covers en.wikipedia.org, hi.wikipedia.org, etc.
+# ============================================================
+
+reference:
+  - wikipedia.org
+  - wikimedia.org
+  - wiktionary.org
+  - wikidata.org
+  - britannica.com
+  - archive.org
+  - jstor.org
+  - doi.org
+  - researchgate.net
+  - academia.edu
+  - scholar.google.com
+  - semanticscholar.org
+  - arxiv.org
+  - ssrn.com
+  - nature.com
+  - sciencedirect.com
+  - springer.com
+  - wiley.com
+  - tandfonline.com
+  - sagepub.com
+  - pubmed.ncbi.nlm.nih.gov
+  - ncbi.nlm.nih.gov
+
+employer_reviews_hr:
+  - glassdoor.com
+  - glassdoor.co.in
+  - indeed.com
+  - ambitionbox.com
+  - naukri.com
+  - shine.com
+  - monster.com
+  - ziprecruiter.com
+  - simplyhired.com
+  - dice.com
+  - comparably.com
+  - jobstreet.com
+  - seek.com.au
+  - reed.co.uk
+  - totaljobs.com
+  - shrm.org
+  - hrci.org
+  - atd.org
+
+business_directories_reviews:
+  - crunchbase.com
+  - g2.com
+  - capterra.com
+  - getapp.com
+  - softwareadvice.com
+  - trustpilot.com
+  - trustradius.com
+  - clutch.co
+  - goodfirms.co
+  - sourceforge.net
+  - producthunt.com
+  - yelp.com
+  - bbb.org
+  - owler.com
+  - zoominfo.com
+  - apollo.io
+  - dnb.com
+  - bloomberg.com
+  - pitchbook.com
+  - tracxn.com
+  - goodreads.com
+
+news_press:
+  - nytimes.com
+  - washingtonpost.com
+  - wsj.com
+  - bbc.com
+  - bbc.co.uk
+  - theguardian.com
+  - reuters.com
+  - apnews.com
+  - bloomberg.com
+  - cnbc.com
+  - cnn.com
+  - forbes.com
+  - fortune.com
+  - businessinsider.com
+  - economist.com
+  - ft.com
+  - time.com
+  - newsweek.com
+  - npr.org
+  - aljazeera.com
+  - thehindu.com
+  - indianexpress.com
+  - timesofindia.indiatimes.com
+  - indiatimes.com
+  - livemint.com
+  - business-standard.com
+  - economictimes.indiatimes.com
+  - hindustantimes.com
+  - moneycontrol.com
+  - yourstory.com
+  - inc42.com
+  - techcrunch.com
+  - theverge.com
+  - wired.com
+  - arstechnica.com
+  - zdnet.com
+  - venturebeat.com
+  - hbr.org
+  - mckinsey.com
+  - deloitte.com
+  - pwc.com
+  - kpmg.com
+  - bcg.com
+  - accenture.com
+  - gartner.com
+  - forrester.com
+  - statista.com
+
+developer_tech:
+  - github.com
+  - gitlab.com
+  - bitbucket.org
+  - stackoverflow.com
+  - stackexchange.com
+  - superuser.com
+  - serverfault.com
+  - askubuntu.com
+  - developer.mozilla.org
+  - mozilla.org
+  - w3.org
+  - python.org
+  - apache.org
+  - kernel.org
+  - npmjs.com
+  - pypi.org
+  - docker.com
+  - kubernetes.io
+  - kaggle.com
+  - huggingface.co
+  - dev.to
+  - hashnode.com
+  - freecodecamp.org
+  - digitalocean.com
+  - atlassian.com
+
+big_tech:
+  - google.com
+  - microsoft.com
+  - apple.com
+  - amazon.com
+  - adobe.com
+  - ibm.com
+  - oracle.com
+  - salesforce.com
+  - sap.com
+  - cisco.com
+  - intel.com
+  - nvidia.com
+  - cloudflare.com
+  - aws.amazon.com
+  - linkedin.com
+  - meta.com
+  - openai.com
+  - anthropic.com
+
+social_ugc:
+  # Real reach, but most of these are nofollow. Kept at tier B because they
+  # are legitimate and safe -- the nofollow penalty is applied separately.
+  - youtube.com
+  - facebook.com
+  - instagram.com
+  - x.com
+  - twitter.com
+  - reddit.com
+  - quora.com
+  - pinterest.com
+  - tumblr.com
+  - medium.com
+  - substack.com
+  - slideshare.net
+  - issuu.com
+  - scribd.com
+  - behance.net
+  - dribbble.com
+  - vimeo.com
+  - soundcloud.com
+  - flickr.com
+  - eventbrite.com
+  - meetup.com
+  - ted.com
+  - about.me
+  - gravatar.com
+  - discord.com
+  - telegram.org
+  - whatsapp.com
+
+education_learning:
+  - coursera.org
+  - edx.org
+  - udemy.com
+  - udacity.com
+  - khanacademy.org
+  - futurelearn.com
+  - skillshare.com
+  - pluralsight.com
+  - linkedin.com
+  - openlearning.com
+  - mooc.org
+  - class-central.com
+  - classcentral.com
+  - alison.com
+  - simplilearn.com
+  - greatlearning.in
+  - upgrad.com
+
+institutions_intl:
+  - un.org
+  - who.int
+  - worldbank.org
+  - imf.org
+  - oecd.org
+  - unesco.org
+  - unicef.org
+  - ilo.org
+  - wto.org
+  - europa.eu
+  - nasa.gov
+  - nih.gov
+  - cdc.gov
+  - ftc.gov
+  - sec.gov
+  - usa.gov
+  - gov.uk
+  - canada.ca
+  - india.gov.in
+  - weforum.org
+  - redcross.org
+  - amnesty.org
+  - wwf.org

@@ -1,0 +1,296 @@
+# ============================================================
+#  SEO Backlink Audit - configuration
+#  Edit this file, save, then run the audit. No code changes needed.
+# ============================================================
+
+# ---- Your own site -----------------------------------------
+# The site the backlinks are supposed to point AT.
+# Used to verify the link is actually live on each page.
+# Accepts a bare domain or a full URL.
+target_site: "edstellar.com"
+
+# Extra domains that also count as "yours" (redirects, alt domains, CDNs)
+target_aliases:
+  - "www.edstellar.com"
+
+# ---- Input --------------------------------------------------
+# Any .csv / .xlsx dropped in input/ is picked up automatically.
+# Recognised column names (case-insensitive, first match wins):
+#   url      : url, link, backlink, backlink url, source url, page, referring page
+#   target   : target, target url, destination, link to, your url
+#   anchor   : anchor, anchor text, keyword
+#   notes    : notes, note, comment, source
+input_dir: "input"
+
+# ---- Network ------------------------------------------------
+network:
+  concurrency: 8          # parallel requests. Lower to 3-4 if you get blocked.
+  timeout: 20             # seconds per request
+  retries: 2              # retries on timeout / connection error
+  delay_per_host: 1.0     # seconds between hits on the SAME host (politeness)
+  max_delay_per_host: 15  # ceiling once a host starts pushing back
+  backoff_recover: 0.85   # how fast a throttled host relaxes again (0.1-0.99)
+  max_redirects: 10
+  verify_ssl: true        # set false only if you hit corporate-proxy cert errors
+  user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+
+# ---- Database -----------------------------------------------
+# One SQLite file holds your master domain list (the disavow sheet) plus every
+# run's results, so "have I ruled on this domain before?" is a lookup rather
+# than a search through spreadsheets.
+#
+#   Import your sheet once:
+#       python -m seo_audit --import-master "Master Disavow Sheet.csv"
+#
+# What a match does NOT do: skip any live checking. Status, HTTPS, the link
+# itself, page content and the home page are re-checked every run for every
+# domain, however well known. A match only (a) tags the row so you can see you
+# already have data, and (b) lets the DA/PA stage reuse numbers you own.
+database:
+  enabled: true
+  path: "data/audit.db"
+
+  # Reuse DA / Spam Score from the database when they were recorded within this
+  # many days. Older than that and the domain goes back into the DA/PA queue
+  # for a refresh, because a two-year-old DA is not worth trusting.
+  reuse_metrics_days: 30
+
+  # After each run, remember newly-found toxic domains in the master list so
+  # the next audit already knows about them. Never overwrites a status you set
+  # by hand - it only fills a blank one.
+  learn_from_runs: true
+
+  # Record every run's rows in the database for trend queries.
+  record_runs: true
+
+# ---- Pipeline: staged gating --------------------------------
+# Work is done in stages, cheapest first, and a link that fails a stage does
+# not go on to the next one. This is what stops you burning DA/PA lookups (or
+# your own clicking time) on domains that are already dead or already spam.
+#
+#   Stage 1  is the page live?          -> fails: DEAD / BLOCKED, stop here
+#   Stage 2  is the PAGE content clean? -> fails: TOXIC, stop here
+#   Stage 3  is the HOME PAGE clean?    -> fails: TOXIC, stop here
+#   Stage 4  DA / PA / Spam Score       -> only for links that passed 1-3
+pipeline:
+  staged: true
+
+  # Also fetch and scan the domain's HOME PAGE, not just the linking page.
+  # This catches the expired-domain flip: a clean-looking article on a domain
+  # whose homepage is now an online-casino site. Costs one extra request per
+  # domain and is cached, so the same homepage is never fetched twice.
+  check_homepage: true
+
+  # Only look up DA/PA for links that passed the live + content gates.
+  # Turn off to price every domain regardless.
+  metrics_only_for_passing: true
+
+  # Treat a noindex page as a content-gate failure. A noindex page cannot pass
+  # ranking signal, so its DA is irrelevant.
+  noindex_fails_gate: true
+
+  # Resolve DNS before any HTTP request. A domain that does not exist then
+  # costs a millisecond instead of a full connect timeout per retry - the
+  # difference between minutes and hours on a big list of mostly-dead domains.
+  dns_precheck: true
+  dns_timeout: 5
+
+  # Re-check a missing link in a real browser before believing it is gone.
+  # Links injected by JavaScript are invisible to a plain HTTP fetch, so this
+  # is what stops a live link being reported as LINK_LOST. Runs as a short
+  # sequential pass over only the affected links. Needs Playwright.
+  render_js: true
+  render_wait_ms: 1200
+
+  # Also retry pages that REFUSED the crawler (401/403/429) or whose TLS
+  # handshake failed. A plain HTTP client gets blocked by bot protection that a
+  # real browser walks straight through: 5 of 30 domains in one real batch came
+  # back 403 while being perfectly readable. Without this they stay BLOCKED -
+  # not judged, and quietly left for you to open by hand.
+  render_blocked: true
+
+  # Sample this many other pages per domain to find out whether a link is
+  # TRULY sitewide, rather than merely sitting in a footer. 0 disables.
+  sitewide_sample: 3
+
+  # For dead links, ask the Wayback Machine what the page used to be and which
+  # anchor it used - the difference between "it's gone" and a usable pitch.
+  archive_dead_links: true
+  archive_max_lookups: 200
+
+  # Resume support for long runs. Completed rows are saved as the run proceeds;
+  # pass --resume to reuse rows younger than resume_hours. Off unless asked for,
+  # because "it was alive yesterday" is not the same claim as "it is alive".
+  resume_hours: 24
+
+# ---- Authority metrics (DA / PA / Spam Score) ---------------
+metrics:
+  # Which provider to use. Options:
+  #   none        -> skip DA/PA entirely, score on on-page signals only
+  #   browser     -> I (Claude) fill these in for you from free DA-PA checker
+  #                  sites, or you paste a checker's export. See README step 4.
+  #   moz         -> official Moz Links API (needs moz_access_id + moz_secret)
+  #   dataforseo  -> DataForSEO Backlinks API (needs login + password)
+  #   rapidapi    -> a RapidAPI DA/PA endpoint (needs key + host)
+  provider: "browser"
+
+  # If a domain has no metrics, still audit it (true) or mark it incomplete (false)
+  allow_missing: true
+
+  # Cache metrics on disk so you never pay/scrape twice for the same domain
+  cache_days: 30
+
+  credentials:
+    # Leave blank here. Real values go in a .env file next to this config
+    # (see .env.example). Anything set in .env wins over this file.
+    moz_access_id: ""
+    moz_secret: ""
+    dataforseo_login: ""
+    dataforseo_password: ""
+    rapidapi_key: ""
+    rapidapi_host: ""
+
+# ---- Scoring weights ---------------------------------------
+scoring:
+  # Base score awarded by domain trust tier (before other adjustments)
+  tier_base:
+    A: 92      # .gov .edu .ac.* .mil - institutional
+    B: 86      # curated high-authority sites (Wikipedia, Glassdoor, ...)
+    C: 70      # .org .int .ngo - non-profit TLDs (NOT auto-trustworthy, see README)
+    D: 58      # everything else
+
+  # How much real DA counts vs the tier guess, when DA is available. 0.0 - 1.0
+  da_weight: 0.5
+
+  # Verdict cut-offs
+  thresholds:
+    good: 75
+    review: 50
+
+  penalties:
+    redirect: 5              # link lands on a 301/302 instead of the final URL
+    redirect_chain_long: 8   # 3+ hops
+    link_missing: 30         # target URL not found anywhere on the page
+    nofollow: 10
+    sponsored: 8
+    ugc: 6
+    noindex: 25              # page blocked from Google - link passes nothing
+    robots_blocked: 15
+    thin_content: 8          # under min_word_count words
+    outbound_high: 10        # over outbound_warn links
+    outbound_extreme: 20     # over outbound_bad links
+    paid_link_marker: 8      # "write for us" / "sponsored post" / "guest post"
+    link_directory: 12
+    spam_score_mid: 15       # Moz Spam Score 31-60
+    spam_score_high: 30      # Moz Spam Score 61+
+    bad_neighbourhood: 35    # adult / gambling / pharma / loan content
+    parked_domain: 60
+    non_https: 3
+    homepage_spam: 40         # the linking page looks fine but the HOME PAGE is spam
+    homepage_dead: 15         # linking page loads but the site's home page does not
+    homepage_parked: 50       # home page is parked / for sale
+    sitewide_link: 12         # footer/sidebar/blogroll link rather than in-content
+    lang_mismatch: 10         # page language is not one you expect
+    tls_invalid: 12           # certificate untrusted - visitors see a warning
+    no_https: 6               # site serves http only
+
+# ---- Content scan ------------------------------------------
+content:
+  min_word_count: 150
+  outbound_warn: 150
+  outbound_bad: 300
+  # Save a copy of each page's extracted text to output/pages/ for manual review
+  save_page_text: false
+
+  # Languages you expect your backlinks to be in. A link from a page in another
+  # language is usually irrelevant to you, however good its DA looks.
+  # Leave empty to disable the check.
+  expected_languages:
+    - "en"
+  # Check the page's relevance to these topics (keyword overlap, 0-100)
+  relevance_keywords:
+    - "corporate training"
+    - "employee"
+    - "upskilling"
+    - "course"
+    - "workshop"
+    - "leadership"
+    - "learning"
+
+  # Other ways of saying the same thing. Relevance is scored per CONCEPT, so a
+  # page saying "staff development programmes" now matches "corporate training"
+  # instead of scoring zero. Words are stemmed, so plurals and British
+  # spellings are already handled - list real alternatives, not inflections.
+  relevance_synonyms:
+    corporate training:
+      - "staff development"
+      - "employee training"
+      - "workforce development"
+      - "learning and development"
+      - "L&D"
+      - "professional development"
+    employee:
+      - "staff"
+      - "workforce"
+      - "personnel"
+      - "team member"
+    upskilling:
+      - "reskilling"
+      - "skill development"
+      - "capability building"
+      - "competency"
+    course:
+      - "programme"
+      - "curriculum"
+      - "class"
+      - "module"
+    workshop:
+      - "seminar"
+      - "masterclass"
+      - "bootcamp"
+      - "training session"
+    leadership:
+      - "management training"
+      - "executive development"
+      - "manager"
+
+# ---- Link-network (PBN) footprint detection ------------------
+# Groups your referring domains by shared IP, /24 subnet, CMS fingerprint and
+# templated titles. A cluster is only reported when MORE THAN ONE signal lines
+# up, because shared hosting and WordPress are not evidence of anything on
+# their own.
+network_footprint:
+  enabled: true
+  min_cluster: 3          # fewest domains before a group counts as a cluster
+  penalty_per_cluster: 12 # score deduction for sitting inside a cluster
+
+  # Look up who owns each IP (RDAP - free, keyless). This is what separates
+  # "forty sites on one cheap shared host", which means nothing, from "forty
+  # sites on one operator's box", which means everything. Without it a shared
+  # IP is treated as a weak signal on its own.
+  asn_lookup: true
+  asn_max_lookups: 300
+
+# ---- Anchor text --------------------------------------------
+anchors:
+  # Flag when one anchor takes more than this share of all anchors
+  max_single_anchor_share: 25
+  # Flag when keyword anchors exceed this share (natural profiles skew branded)
+  max_keyword_share: 50
+  # Your brand names. Defaults to the stem of target_site if left empty.
+  brand_terms:
+    - "edstellar"
+
+# ---- Output -------------------------------------------------
+output:
+  dir: "output"
+  excel: true
+  html: true
+  csv: true
+  # Prefix for report filenames; a timestamp is appended
+  prefix: "backlink_audit"
+
+  # Path to the disavow file currently uploaded in Search Console. Supply it
+  # and every run tells you exactly what it would add and - more importantly -
+  # what it would REMOVE, since uploading replaces the file wholesale.
+  existing_disavow: ""

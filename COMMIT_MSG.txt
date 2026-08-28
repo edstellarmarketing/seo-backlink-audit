@@ -1,0 +1,41 @@
+SEO backlink audit: staged pipeline, master-list database, dashboard
+
+A backlink auditor built around one idea: do the cheap check first, and stop
+as soon as a link is disqualified. Authority metrics are the expensive stage,
+so they only run on links that already passed everything before them. On a
+real batch of 30 domains that meant 17 lookups instead of 30, and 4 of those
+were answered from the master list rather than looked up at all.
+
+Pipeline
+  Stage 1  live check   - DNS hint, then a fetch ladder (strict HTTPS ->
+                          relaxed TLS -> HTTP), adaptive per-host backoff
+  Stage 2  page content - is your link still there, is it followed, is it
+                          in-article or footer boilerplate, is the page even
+                          indexable, is the content spam
+  Stage 3  home page    - catches the expired-domain flip: a clean article on
+                          a site whose home page is now a casino
+  Stage 4  DA / PA / SS - survivors only, reusing anything already owned
+
+Database
+  One SQLite file holds the master disavow sheet (10,439 domains with DA,
+  Spam Score and status) plus every run. A match tags a row and lets recent
+  DA be reused; it never skips a live check, because the whole question is
+  whether a known domain changed. Where the sheet and the live check
+  disagree, that contradiction is reported as its own action.
+
+Reporting
+  An HTML dashboard that opens with what needs doing, eight filters, per-row
+  expansion, and export. Plus xlsx, csv, a disavow file that excludes merely
+  low-value links, a disavow diff against what is already uploaded, an
+  anchor-profile report, link-network clusters, and a run-over-run diff.
+
+Deliberate choices worth not undoing
+  - a failed DNS lookup never condemns a domain; HTTP is the arbiter
+  - 5xx is BLOCKED, not DEAD
+  - low-value links are excluded from disavow.txt
+  - a shared IP counts on a VPS host and is discounted on a CDN
+  - the DNS/robots/home-page caches key on origin, not hostname
+
+Verified by 262 offline assertions, 90 documentation checks, and a headless
+browser pass over the report UI.
+
